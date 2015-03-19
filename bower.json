@@ -1,0 +1,22 @@
+{
+  "name": "alite",
+  "main": "alite.js",
+  "version": "0.0.1",
+  "homepage": "https://github.com/chrisdavies/alite",
+  "authors": [
+    "Chris Davies <ferociousturtle@gmail.com>"
+  ],
+  "description": "Tiny ajax helper",
+  "keywords": [
+    "ajax"
+  ],
+  "license": "MIT",
+  "ignore": [
+    ".gitignore",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "README.md"
+  ]
+}
