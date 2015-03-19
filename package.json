@@ -1,0 +1,21 @@
+{
+  "name": "alite",
+  "version": "0.0.1",
+  "description": "Tiny ajax helper",
+  "main": "plite.js",
+  "directories": {},
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chrisdavies/alite"
+  },
+  "keywords": [
+    "ajax"
+  ],
+  "author": "Chris Davies <ferociousturtle@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chrisdavies/alite/issues"
+  },
+  "homepage": "https://github.com/chrisdavies/alite"
+}
