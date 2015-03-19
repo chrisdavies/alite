@@ -1,6 +1,6 @@
 # Alite
 
-A simple, tiny (600 bytes gzipped and minified) Promise-based AJAX library.
+A simple, tiny (600ish bytes gzipped and minified) Promise-based AJAX library.
 
 This requires Promise support. In older browsers, Promises can be shimmed
 easily enough with something like [Plite](https://github.com/chrisdavies/plite).

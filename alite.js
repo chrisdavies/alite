@@ -62,3 +62,7 @@ function Alite(XMLHttpRequest) {
     }
   };
 }
+
+if (typeof module === 'object' && typeof define !== 'function') {
+  module.exports = Alite;
+}
