@@ -1,7 +1,7 @@
 {
   "name": "alite",
   "main": "alite.js",
-  "version": "0.0.1",
+  "version": "0.0.11",
   "homepage": "https://github.com/chrisdavies/alite",
   "authors": [
     "Chris Davies <ferociousturtle@gmail.com>"
@@ -17,6 +17,7 @@
     "bower_components",
     "test",
     "tests",
-    "README.md"
+    "readme.md",
+    "package.json"
   ]
 }
