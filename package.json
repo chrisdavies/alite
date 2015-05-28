@@ -2,9 +2,10 @@
   "name": "alite",
   "version": "0.0.1",
   "description": "Tiny ajax helper",
-  "main": "plite.js",
+  "main": "alite.js",
   "directories": {},
   "scripts": {
+    "test": "jasmine-node test/*.spec.js",
     "min": "uglifyjs alite.js --source-map alite.min.js.map -m -c -o alite.min.js && echo 'Minified size' && uglifyjs alite.js | gzip -9f | wc -c"
   },
   "repository": {
@@ -19,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/chrisdavies/alite/issues"
   },
-  "homepage": "https://github.com/chrisdavies/alite"
+  "homepage": "https://github.com/chrisdavies/alite",
+  "devDependencies": {
+    "jasmine-node": "^1.14.5"
+  }
 }

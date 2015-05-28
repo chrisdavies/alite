@@ -3,13 +3,7 @@
 A simple, tiny promise-based AJAX library.
 
 - Zero dependencies
-- Less than 500 bytes minified and gzipped
-
-This requires Promise support. In older browsers, Promises can be shimmed
-easily enough with something like [Plite](https://github.com/chrisdavies/plite).
-
-Alite currently has a naive method of detecting if a response is JSON... If it
-starts wit `{` or `[`, then the response is considered JSON.
+- Less than 600 bytes minified and gzipped
 
 ## Usage
 
@@ -72,6 +66,16 @@ var promise1 = ajax.get('/api/admins', credentials);
 var promise2 = ajax.post('/api/admins', new Admin(), credentials);
 
 ```
+
+## Assumptions
+
+Alite assumes that sends (post, put, patch) are sending JSON.
+
+Alite requires Promise support. In older browsers, Promises can be shimmed
+easily enough with something like [Plite](https://github.com/chrisdavies/plite).
+
+Alite currently has a naive method of detecting if a response is JSON... If it
+starts with `{` or `[`, then the response is considered JSON.
 
 ## Installing
 
