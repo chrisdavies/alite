@@ -4,7 +4,9 @@
   "description": "Tiny ajax helper",
   "main": "plite.js",
   "directories": {},
-  "scripts": {},
+  "scripts": {
+    "min": "uglifyjs alite.js --source-map alite.min.js.map -m -c -o alite.min.js && echo 'Minified size' && uglifyjs alite.js | gzip -9f | wc -c"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/chrisdavies/alite"

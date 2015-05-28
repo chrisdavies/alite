@@ -1,13 +1,81 @@
 # Alite
 
-A simple, tiny (600 bytes gzipped and minified) Promise-based AJAX library.
+A simple, tiny promise-based AJAX library.
+
+- Zero dependencies
+- Less than 500 bytes minified and gzipped
 
 This requires Promise support. In older browsers, Promises can be shimmed
 easily enough with something like [Plite](https://github.com/chrisdavies/plite).
 
+Alite currently has a naive method of detecting if a response is JSON... If it
+starts wit `{` or `[`, then the response is considered JSON.
+
 ## Usage
 
-Include `alite.min.js`
+Create a new instance of Alite:
+
+```javascript
+var alite = Alite();
+```
+
+### Get, Delete
+
+Get and delete both take two arguments
+
+- url: the url to which data is being sent
+- requestHeaders: optional headers to be added to the request
+
+```javascript
+ajax.get('https://api.github.com/users')
+  .then(function (result) {
+    // Data is the deserialized JSON object that came back from the server
+    // The request is also available in result.request
+    console.log(result.data);
+  })
+  .catch(function (err) {
+    // err.data is where you'll find the data (if any) that the server sent
+    console.log(err.request.status);
+  });
+
+var promise = ajax.delete('users/24');
+```
+
+### Post, Put, Patch
+
+Post, put and patch take three arguments
+
+- url: the url to which data is being sent
+- data: the data being sent
+- requestHeaders: optional headers to be added to the request
+
+```javascript
+var promise = ajax.post('some/url', { the: 'data' });
+```
+
+### Request headers
+
+If you need to send special headers or override standard ones, pass the
+`requestHeaders` argument to the ajax method(s).
+
+requestHeaders is a hash of header values to be sent:
+
+```javascript
+var credentials = {
+  'Authorization': 'Basic ' + btoa(username + ':' + password)
+};
+
+// The header(s) are the 2nd argument to get and delete
+var promise1 = ajax.get('/api/admins', credentials);
+
+// The header(s) are the 3rd argument in post, put, and patch
+var promise2 = ajax.post('/api/admins', new Admin(), credentials);
+
+```
+
+## Installing
+
+Download and include `alite.min.js`
 
 Or install using NPM:
 
@@ -16,12 +84,6 @@ Or install using NPM:
 Or install using Bower:
 
     bower install alite
-
-## Minification
-
-Minified using:
-
-    uglifyjs alite.js --source-map alite.min.js.map -m -c -o alite.min.js
 
 ## License MIT
 
