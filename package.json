@@ -1,6 +1,6 @@
 {
   "name": "alite",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Tiny ajax helper",
   "main": "alite.js",
   "directories": {},
