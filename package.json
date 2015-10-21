@@ -6,7 +6,7 @@
   "directories": {},
   "scripts": {
     "test": "jasmine-node test/*.spec.js",
-    "min": "uglifyjs alite.js --source-map alite.min.js.map -m -c -o alite.min.js && echo 'Minified size' && uglifyjs alite.js | gzip -9f | wc -c"
+    "min": "uglifyjs alite.js --source-map alite.min.js.map -m -c -o alite.min.js && echo 'Minified size' && cat alite.min.js | gzip -9f | wc -c"
   },
   "repository": {
     "type": "git",
