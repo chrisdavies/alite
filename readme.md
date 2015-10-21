@@ -3,7 +3,7 @@
 A simple, tiny promise-based AJAX library.
 
 - Zero dependencies
-- Less than 600 bytes minified and gzipped
+- Roughly 500 bytes minified and gzipped
 
 [![Build Status](https://travis-ci.org/chrisdavies/alite.svg?branch=master)](https://travis-ci.org/chrisdavies/alite)
 
