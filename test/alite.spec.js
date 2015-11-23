@@ -36,18 +36,6 @@
       req.exec(200, '{ "name": "Jimmy" }');
     });
 
-    it('attaches xhr to the promise', function (done) {
-      var req = MockReq();
-      var ajax = Alite(req.mockConstructor);
-      var promise = ajax.get('/foo')
-        .then(function () {
-          expect(this.xhr).toBe(req);
-          done();
-        });
-
-      req.exec(200, '[]');
-    });
-
     it('calls before/after functions', function (done) {
       var req = MockReq();
       var ajax = Alite(req.mockConstructor);

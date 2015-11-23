@@ -18,8 +18,6 @@ function Alite(XMLHttpRequest) {
         var req = new XMLHttpRequest();
         var data = opts.raw ? opts.data : (opts.data ? JSON.stringify(opts.data) : undefined);
 
-        this.xhr = req;
-
         req.onreadystatechange = function () {
           if (req.readyState == 4) {
             if (req.status >= 200 && req.status < 300) {
