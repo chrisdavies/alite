@@ -1,74 +1,65 @@
 function Alite(XMLHttpRequest) {
-
   XMLHttpRequest = XMLHttpRequest || this.XMLHttpRequest;
 
   function response(req) {
-    var isJson = req && req.responseText &&
-        req.responseText[0] == '{' ||
-        req.responseText[0] == '[';
+    var responseText = req && req.responseText;
+    var isJson = responseText &&
+        (responseText[0] == '{' || responseText[0] == '[');
 
-    return {
-      request: req,
-      data: isJson ? JSON.parse(req.responseText) : req.responseText
-    };
+    return isJson ? JSON.parse(responseText) : responseText;
   }
 
-  function ajax(httpMethod, url, params, requestHeaders) {
-    return new Promise(function(resolve, reject) {
-      var req = new XMLHttpRequest();
+  var alite = {
+    ajaxStart: function () { },
+    ajaxStop: function () { },
 
-      req.onreadystatechange = function () {
-        if (req.readyState == 4) {
-          if (req.status >= 200 && req.status < 300) {
-            resolve(response(req));
-          } else {
-            reject(response(req));
+    ajax: function (opts) {
+      var req = new XMLHttpRequest();
+      var promise = new Promise(function(resolve, reject) {
+        var data = opts.raw ? opts.data : (opts.data ? JSON.stringify(opts.data) : undefined);
+
+        req.onreadystatechange = function () {
+          if (req.readyState == 4) {
+            if (req.status >= 200 && req.status < 300) {
+              resolve(response(req));
+            } else {
+              reject(response(req));
+            }
+
+            alite.ajaxStop(req, opts);
           }
         }
-      }
 
-      req.open(httpMethod, url);
-      req.setRequestHeader('content-type', 'application/json');
+        req.open(opts.method, opts.url);
+        !opts.raw && req.setRequestHeader('content-type', 'application/json');
 
-      if (requestHeaders) {
-        for (var name in requestHeaders) {
-          req.setRequestHeader(name, requestHeaders[name]);
+        if (opts.headers) {
+          for (var name in opts.headers) {
+            req.setRequestHeader(name, opts.headers[name]);
+          }
         }
-      }
 
-      req.send(params ? JSON.stringify(params) : undefined);
-    });
-  }
+        alite.ajaxStart(req, opts);
+        opts.ajaxStart && opts.ajaxStart(req);
 
-  return {
-    get: function (url, requestHeaders) {
-      return ajax('GET', url, undefined, requestHeaders);
-    },
+        req.send(data);
+      });
 
-    'delete': function (url, requestHeaders) {
-      return ajax('DELETE', url, undefined, requestHeaders);
-    },
-
-    post: function (url, data, requestHeaders) {
-      return ajax('POST', url, data, requestHeaders);
-    },
-
-    put: function (url, data, requestHeaders) {
-      return ajax('PUT', url, data, requestHeaders);
-    },
-
-    patch: function (url, data, requestHeaders) {
-      return ajax('PATCH', url, data, requestHeaders);
+      promise.xhr = req;
+      return promise;
     }
   };
+
+  ['put', 'post', 'patch', 'get', 'delete'].forEach(function (httpMethod) {
+    alite[httpMethod] = function (opts) {
+      opts.method = httpMethod;
+      return this.ajax(opts);
+    }
+  });
+
+  return alite;
 }
 
-(function (root, factory) {
-  var define = root.define;
-
-  if (define && define.amd) {
-    define([], factory);
-  } else if (typeof module !== 'undefined' && module.exports) {
-    module.exports = factory();
-  }
-}(this, function () { return Alite; }));
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Alite;
+}

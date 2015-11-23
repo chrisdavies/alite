@@ -1,4 +1,5 @@
 (function (Alite) {
+
   describe('Alite', function () {
 
     it('gets', function (done) {
@@ -26,13 +27,82 @@
       var ajax = Alite(req.mockConstructor);
 
       ajax.get('/foo').then(function (result) {
-        expect(result.data.name).toEqual('Jimmy');
+        expect(result.name).toEqual('Jimmy');
         done();
       }).catch(function () {
         expect(false).toBe(true); // Catch should not get called...
       });
 
       req.exec(200, '{ "name": "Jimmy" }');
+    });
+
+    it('attaches xhr to the promise', function () {
+      var req = MockReq();
+      var ajax = Alite(req.mockConstructor);
+      var promise = ajax.get('/foo');
+
+      expect(promise.xhr).toBe(req);
+    });
+
+    it('calls before/after functions', function (done) {
+      var req = MockReq();
+      var ajax = Alite(req.mockConstructor);
+      var flags = {
+        start: false,
+        instStart: false,
+        stop: false,
+      };
+
+      ajax.ajaxStart = function (xhr) {
+        expect(xhr).toBe(req);
+        expect(flags.start || flags.stop).toBe(false);
+        flags.start = true;
+      };
+
+      ajax.ajaxStop = function (xhr) {
+        expect(xhr).toBe(req);
+        expect(flags.start).toBe(true);
+        expect(flags.stop).toBe(false);
+        flags.stop = true;
+      };
+
+      ajax.get({
+        url: '/baz',
+        raw: true,
+        data: 123,
+        ajaxStart: function (xhr) {
+          expect(xhr).toBe(req);
+          expect(flags.start).toBe(true);
+          expect(flags.stop).toBe(false);
+          expect(flags.instStart).toBe(false);
+          flags.instStart = true;
+        }
+      }).then(function (result) {
+        expect(flags.start && flags.stop).toBe(true);
+        done();
+      }).catch(function (result) {
+        expect(false).toBe(true);
+      });
+
+      req.exec(200, '[]');
+    });
+
+    it('allows sending raw data', function (done) {
+      var req = MockReq();
+      var ajax = Alite(req.mockConstructor);
+
+      ajax.get({
+        url: '/baz',
+        raw: true,
+        data: 123
+      }).then(function (result) {
+        expect(req.sent).toBe(123);
+        done();
+      }).catch(function (result) {
+        expect(false).toBe(true);
+      });
+
+      req.exec(200, '[]');
     });
 
     it('handles error statuses', function (done) {
@@ -46,9 +116,12 @@
       var req = MockReq();
       var ajax = Alite(req.mockConstructor);
 
-      ajax.get('/baz', {
-        'content-type': 'text/html',
-        'blam': 'blast'
+      ajax.get({
+        url: '/baz',
+        headers: {
+          'content-type': 'text/html',
+          'blam': 'blast'
+        }
       });
 
       expect(req.headers['content-type']).toEqual('text/html');
@@ -60,30 +133,29 @@
       var req = MockReq();
       var ajax = Alite(req.mockConstructor);
 
-      ajax.get('/baz').then(function (result) {
+      ajax.get({ url: '/baz' }).then(function (result) {
         expect(false).toBe(req.status); // Then should not get called...
       }).catch(function (result) {
-        expect(result.request).toBe(req);
+        expect(result.message).toBe('Doh');
         done();
       });
 
       expect(req.sent).toBeUndefined();
-      req.exec(code, 'Whatevz');
+      req.exec(code, '{ "message": "Doh" }');
     }
 
     function sendData(method, url, data, done) {
       var req = MockReq();
       var ajax = Alite(req.mockConstructor);
 
-      ajax[method.toLowerCase()](url, data).then(function (result) {
-        expect(result.data).toEqual('OK');
-        expect(result.request).toBe(req);
+      ajax[method.toLowerCase()]({ url: url, data: data }).then(function (result) {
+        expect(result).toEqual('OK');
         done();
       }).catch(function () {
         expect(false).toBe(true); // Catch should not get called...
       });
 
-      expect(req.method).toEqual(method);
+      expect(req.method.toLowerCase()).toEqual(method.toLowerCase());
       expect(req.url).toEqual(url);
       data && expect(req.sent).toEqual(JSON.stringify(data));
       req.exec(200, 'OK');

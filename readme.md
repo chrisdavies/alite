@@ -15,63 +15,150 @@ Create a new instance of Alite:
 var alite = Alite();
 ```
 
-### Get, Delete
+### Ajax methods
 
-Get and delete both take two arguments
+There are several methods, each with an identical signature: put, post, patch, get, delete, and ajax.
 
-- url: the url to which data is being sent
-- requestHeaders: optional headers to be added to the request
+Each of these takes a single argument, which is an object of the following shape:
+
+```js
+{
+  // Required: the URL to send/receive from
+  url: '/api/foo/bar',
+
+  // Optional: the object to send as JSON, or raw if the raw flag is set
+  data: { foo: 'bar' },
+
+  // Optional: A flag indicating whether or not this is a raw request
+  // (by default, this is false, and data is turned into a JSON string)
+  raw: false,
+
+  // Optional: an object containing the HTTP headers to set
+  headers: {
+    'Authorization': 'Basic ' + btoa(username + ':' + password)
+  },
+
+  // Optional: a function to be called before the AJAX request is sent
+  ajaxStart: function (xhr) {
+    // ...
+  }
+}
+```
+
+Some examples follow:
+
+```js
+alite.get({ url: '/api/foo' });
+
+alite.delete({ url: '/api/foo/1' });
+
+alite.patch({
+  url: '/api/foo/1',
+  data: { name: 'Joe', age: 32 }
+});
+
+alite.put({
+  url: '/api/foo/1',
+  data: { name: 'Joe', age: 32 }
+});
+
+alite.post({
+  url: '/api/foo',
+  data: { name: 'Joe', age: 32 }
+});
+
+alite.ajax({
+  url: '/api/foo',
+  data: { name: 'Joe', age: 32 },
+  method: 'POST'
+});
+```
+
+### Promises
+
+Each of these methods returns a promise, and so is generally called like this:
 
 ```javascript
-ajax.get('https://api.github.com/users')
+alite.get({ url: 'https://api.github.com/users' })
   .then(function (result) {
-    // Data is the deserialized JSON object that came back from the server
-    // The request is also available in result.request
-    console.log(result.data);
+    // Result is the deserialized JSON object/array that came back from the server
+    console.log(result);
   })
   .catch(function (err) {
-    // err.data is where you'll find the data (if any) that the server sent
-    console.log(err.request.status);
+    // err is the deserialzed JSON object/array that was returned from the server
+    console.log(err);
   });
-
-var promise = ajax.delete('users/24');
 ```
 
-### Post, Put, Patch
+The promise object has a non-standard property attached to it: `xhr`
 
-Post, put and patch take three arguments
-
-- url: the url to which data is being sent
-- data: the data being sent
-- requestHeaders: optional headers to be added to the request
-
-```javascript
-var promise = ajax.post('some/url', { the: 'data' });
+```js
+var promise = alite.delete('users/24')
+  .then(function (result) {
+    console.log(result); // The JSON object received
+    console.log(promise.xhr.getResponseHeader('Server')); // Get the XHR object from the promise
+  });
 ```
 
-### Request headers
+### Example file upload
 
-If you need to send special headers or override standard ones, pass the
-`requestHeaders` argument to the ajax method(s).
+The following code is taken from a production app that uploads files to S3:
 
-requestHeaders is a hash of header values to be sent:
+```js
+// File is a file object obtained from an input[type=file] element
+// presigned is an object representing AWS S3 presigned URL info...
+function upload(file, presigned) {
 
-```javascript
-var credentials = {
-  'Authorization': 'Basic ' + btoa(username + ':' + password)
+  var alite = Alite();
+  var data = new FormData();
+
+  data.append('utf8', '✓');
+  data.append('Content-Type', file.type);
+  data.append('Content-Disposition', 'attachment; filename = "${filename}"');
+  data.append('key', presigned.fullKey);
+  data.append('AWSAccessKeyId', presigned.awsAccessKeyId);
+  data.append('acl', presigned.acl);
+  data.append('policy', presigned.policy);
+  data.append('signature', presigned.signature);
+  data.append('file', file);
+
+  return alite.post({
+    url: presigned.url,
+    data: data,
+    raw: true, // This isn't going to be a JSON request
+    ajaxStart: function (xhr) {
+      xhr.upload.addEventListener('progress', function (e) {
+        updateProgressBar(Math.ceil((e.loaded / e.total) * 100));
+      }, false);
+    }
+  });
+}
+```
+
+### Global AJAX notifications: ajaxStart/ajaxStop
+
+The Alite object has two properties which you can set in order to receive notifications
+when an ajax request starts or completes:
+
+```js
+var alite = Alite();
+
+// xhr is the raw XMLHttpRequest object
+// opts is the argument that was passed to the Alite ajax method
+//   that triggered this request.
+alite.ajaxStart = function (xhr, opts) {
+  // Pass the CSRF token along with the request...
+  xhr.setRequestHeader('X-CSRF-Token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
 };
 
-// The header(s) are the 2nd argument to get and delete
-var promise1 = ajax.get('/api/admins', credentials);
-
-// The header(s) are the 3rd argument in post, put, and patch
-var promise2 = ajax.post('/api/admins', new Admin(), credentials);
-
+alite.ajaxStop = function (xhr, opts) {
+  // This runs whenever an AJAX request has completed (success or error)
+};
 ```
 
 ## Assumptions
 
-Alite assumes that sends (post, put, patch) are sending JSON.
+If `raw` is not specified or is false, data is sent as JSON and is automatically serialized for you.
 
 Alite requires Promise support. In older browsers, Promises can be shimmed
 easily enough with something like [Plite](https://github.com/chrisdavies/plite).
