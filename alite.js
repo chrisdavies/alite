@@ -14,9 +14,11 @@ function Alite(XMLHttpRequest) {
     ajaxStop: function () { },
 
     ajax: function (opts) {
-      var req = new XMLHttpRequest();
-      var promise = new Promise(function(resolve, reject) {
+      return new Promise(function(resolve, reject) {
+        var req = new XMLHttpRequest();
         var data = opts.raw ? opts.data : (opts.data ? JSON.stringify(opts.data) : undefined);
+
+        this.xhr = req;
 
         req.onreadystatechange = function () {
           if (req.readyState == 4) {
@@ -44,9 +46,6 @@ function Alite(XMLHttpRequest) {
 
         req.send(data);
       });
-
-      promise.xhr = req;
-      return promise;
     }
   };
 

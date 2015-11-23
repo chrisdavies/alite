@@ -90,13 +90,14 @@ alite.get({ url: 'https://api.github.com/users' })
   });
 ```
 
-The promise object has a non-standard property attached to it: `xhr`
+The promise object has a non-standard property attached to it: `xhr` which can be accessed
+inside then/catch via `this.xhr`.
 
 ```js
-var promise = alite.delete('users/24')
+alite.delete('users/24')
   .then(function (result) {
     console.log(result); // The JSON object received
-    console.log(promise.xhr.getResponseHeader('Server')); // Get the XHR object from the promise
+    console.log(this.xhr.getResponseHeader('Server')); // Get the XHR object from the promise
   });
 ```
 
@@ -108,7 +109,6 @@ The following code is taken from a production app that uploads files to S3:
 // File is a file object obtained from an input[type=file] element
 // presigned is an object representing AWS S3 presigned URL info...
 function upload(file, presigned) {
-
   var alite = Alite();
   var data = new FormData();
 
