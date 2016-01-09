@@ -14,6 +14,7 @@ alite({
   // Required: the URL to send/receive from
   url: '/api/foo/bar',
 
+  // Required: the http method to be used in the AJAX request
   method: 'POST',
 
   // Optional: the object to send as JSON, or raw if the raw flag is set
