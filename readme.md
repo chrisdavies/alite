@@ -3,28 +3,18 @@
 A simple, tiny promise-based AJAX library.
 
 - Zero dependencies
-- Roughly 500 bytes minified and gzipped
+- Less than 450 bytes minified and gzipped
 
 [![Build Status](https://travis-ci.org/chrisdavies/alite.svg?branch=master)](https://travis-ci.org/chrisdavies/alite)
 
 ## Usage
 
-Create a new instance of Alite:
-
-```javascript
-var alite = Alite();
-```
-
-### Ajax methods
-
-There are several methods, each with an identical signature: put, post, patch, get, delete, and ajax.
-
-Each of these takes a single argument, which is an object of the following shape:
-
 ```js
-{
+alite({
   // Required: the URL to send/receive from
   url: '/api/foo/bar',
+
+  method: 'POST',
 
   // Optional: the object to send as JSON, or raw if the raw flag is set
   data: { foo: 'bar' },
@@ -38,40 +28,17 @@ Each of these takes a single argument, which is an object of the following shape
     'Authorization': 'Basic ' + btoa(username + ':' + password)
   },
 
-  // Optional: a function to be called before the AJAX request is sent
-  ajaxStart: function (xhr) {
+  // Optional: a function that constructs and returns an XMLHttpRequest object
+  xhr: function () {
     // ...
   }
-}
-```
-
-Some examples follow:
-
-```js
-alite.get({ url: '/api/foo' });
-
-alite.delete({ url: '/api/foo/1' });
-
-alite.patch({
-  url: '/api/foo/1',
-  data: { name: 'Joe', age: 32 }
+}).then(function (result) {
+  console.log('GOT ', result);
+}).catch(function (err) {
+  console.error(err);
 });
 
-alite.put({
-  url: '/api/foo/1',
-  data: { name: 'Joe', age: 32 }
-});
 
-alite.post({
-  url: '/api/foo',
-  data: { name: 'Joe', age: 32 }
-});
-
-alite.ajax({
-  url: '/api/foo',
-  data: { name: 'Joe', age: 32 },
-  method: 'POST'
-});
 ```
 
 ### Promises
@@ -79,25 +46,15 @@ alite.ajax({
 Each of these methods returns a promise, and so is generally called like this:
 
 ```javascript
-alite.get({ url: 'https://api.github.com/users' })
+alite({ url: 'https://api.github.com/users', method: 'GET' })
   .then(function (result) {
     // Result is the deserialized JSON object/array that came back from the server
     console.log(result);
   })
   .catch(function (err) {
-    // err is the deserialzed JSON object/array that was returned from the server
+    // err is the deserialzed JSON object/array that was returned from the server,
+    // or a string, if the response was not JSON
     console.log(err);
-  });
-```
-
-The promise object has a non-standard property attached to it: `xhr` which can be accessed
-inside then/catch via `this.xhr`.
-
-```js
-alite.delete('users/24')
-  .then(function (result) {
-    console.log(result); // The JSON object received
-    console.log(this.xhr.getResponseHeader('Server')); // Get the XHR object from the promise
   });
 ```
 
@@ -109,9 +66,7 @@ The following code is taken from a production app that uploads files to S3:
 // File is a file object obtained from an input[type=file] element
 // presigned is an object representing AWS S3 presigned URL info...
 function upload(file, presigned) {
-  var alite = Alite();
   var data = new FormData();
-
   data.append('utf8', '✓');
   data.append('Content-Type', file.type);
   data.append('Content-Disposition', 'attachment; filename = "${filename}"');
@@ -122,14 +77,25 @@ function upload(file, presigned) {
   data.append('signature', presigned.signature);
   data.append('file', file);
 
-  return alite.post({
+  return alite({
     url: presigned.url,
+    method: 'post',
     data: data,
-    raw: true, // This isn't going to be a JSON request
-    ajaxStart: function (xhr) {
+    raw: true,
+    xhr: function () {
+      var xhr = new XMLHttpRequest();
       xhr.upload.addEventListener('progress', function (e) {
-        updateProgressBar(Math.ceil((e.loaded / e.total) * 100));
+        const progress = Math.ceil((e.loaded / e.total) * 100);
+
+        // This is a Redux dispatch to update progress in the UI
+        dispatch({
+          type: 'upload_progress',
+          abort: () => xhr.abort(),
+          progress,
+          file
+        });
       }, false);
+      return xhr;
     }
   });
 }

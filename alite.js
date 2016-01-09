@@ -1,62 +1,45 @@
-function Alite(XMLHttpRequest) {
-  XMLHttpRequest = XMLHttpRequest || this.XMLHttpRequest;
+function alite(opts) {
+  function noop() { }
 
   function response(req) {
     var responseText = req && req.responseText;
-    var isJson = responseText &&
-        (responseText[0] == '{' || responseText[0] == '[');
+    var isJson = /^[\{\[]/.test(responseText);
 
     return isJson ? JSON.parse(responseText) : responseText;
   }
 
-  var alite = {
-    ajaxStart: function () { },
-    ajaxStop: function () { },
+  return new Promise(function(resolve, reject) {
+    var req = (opts.xhr || noop)() || new XMLHttpRequest();
+    var data = opts.data;
 
-    ajax: function (opts) {
-      return new Promise(function(resolve, reject) {
-        var req = new XMLHttpRequest();
-        var data = opts.raw ? opts.data : (opts.data ? JSON.stringify(opts.data) : undefined);
-
-        req.onreadystatechange = function () {
-          if (req.readyState == 4) {
-            if (req.status >= 200 && req.status < 300) {
-              resolve(response(req));
-            } else {
-              reject(response(req));
-            }
-
-            alite.ajaxStop(req, opts);
-          }
+    req.onreadystatechange = function () {
+      if (req.readyState == 4) {
+        if (req.status >= 200 && req.status < 300) {
+          resolve(response(req));
+        } else {
+          reject(response(req));
         }
 
-        req.open(opts.method, opts.url);
-        !opts.raw && req.setRequestHeader('content-type', 'application/json');
-
-        if (opts.headers) {
-          for (var name in opts.headers) {
-            req.setRequestHeader(name, opts.headers[name]);
-          }
-        }
-
-        alite.ajaxStart(req, opts);
-        opts.ajaxStart && opts.ajaxStart(req);
-
-        req.send(data);
-      });
+        (alite.ajaxStop || noop)(req, opts);
+      }
     }
-  };
 
-  ['put', 'post', 'patch', 'get', 'delete'].forEach(function (httpMethod) {
-    alite[httpMethod] = function (opts) {
-      opts.method = httpMethod;
-      return this.ajax(opts);
+    req.open(opts.method, opts.url);
+    !opts.raw && req.setRequestHeader('Content-Type', 'application/json');
+
+    if (opts.headers) {
+      for (var name in opts.headers) {
+        req.setRequestHeader(name, opts.headers[name]);
+      }
     }
-  });
 
-  return alite;
+    (alite.ajaxStart || noop)(req, opts);
+    (opts.ajaxStart || noop)(req);
+
+    req.send(opts.raw ? data : (data ? JSON.stringify(data) : undefined));
+  })
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = Alite;
+  module.exports = alite;
 }
